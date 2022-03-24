@@ -5,7 +5,7 @@ from unet import build_unet
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TensorBoard, EarlyStopping
 from tensorflow.keras.optimizers import Adam
-from deeplab import Deeplabv3
+from deeplab import DeepLabV3Plus
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -21,14 +21,10 @@ if __name__ == '__main__':
     dataset = tf_dataset(images, masks, 2)
 
     learning_rate = 0.1
+    input_shape = (256, 256, 3)
+    model = DeepLabV3Plus(input_shape)
 
-    model = Deeplabv3(classes=2)
-    model.compile(loss='binary_crossentropy')
-    print(model.summary())
-    ''' 
-    model = build_unet((256, 256, 3))
     model.compile(loss="binary_crossentropy", optimizer=Adam(learning_rate))
-    print(model.summary())
 
     csv_path = 'output/out.csv'
 
@@ -45,12 +41,14 @@ if __name__ == '__main__':
         TensorBoard()
     ]
 
-    model_history = model.fit(dataset, epochs=n_epochs,
-                              steps_per_epoch=train_steps_per_batch,
-                              validation_data=dataset,
-                              validation_steps=train_steps_per_batch,
-                              callbacks=callbacks)
+    loss = SparseCategoricalCrossentropy(from_logits=True)
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss=loss,
+        metrics=["accuracy"],
+    )
 
-    
-    '''
+    history = model.fit(dataset, epochs=25)
+
+
 
