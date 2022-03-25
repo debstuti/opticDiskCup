@@ -16,24 +16,15 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
+    '''
     root_path = '/Users/debstutidas/PycharmProjects/opticDiskCup/data/Drishti-GS/train'
     images, masks = load_data(root_path)
-    train_generator = train_generator(images, masks)
-
+    '''
+    train_generator = train_generator()
     learning_rate = 0.1
     input_shape = (256, 256, 3)
+
     model = DeepLabV3Plus(input_shape)
-
-
-
-    csv_path = 'output/out.csv'
-
-    batch_size = 32
-    n_epochs = 1
-
-    train_steps_per_batch = len(images) // batch_size
-
-
 
     loss = CategoricalCrossentropy()
     model.compile(

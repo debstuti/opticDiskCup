@@ -46,7 +46,7 @@ def preprocess(image, mask):
     mask.set_shape([256, 256, 1])
     return image, mask
 
-def train_generator(images, masks):
+def train_generator():
     # we create two instances with the same arguments
     data_gen_args = dict(vertical_flip=True,
                          horizontal_flip=True,
