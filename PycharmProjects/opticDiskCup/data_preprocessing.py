@@ -1,8 +1,10 @@
-import os
 import glob
+import os
+
 import cv2
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 def load_data(root_path):
@@ -44,11 +46,28 @@ def preprocess(image, mask):
     mask.set_shape([256, 256, 1])
     return image, mask
 
+def train_generator(images, masks):
+    # we create two instances with the same arguments
+    data_gen_args = dict(vertical_flip=True,
+                         horizontal_flip=True,
+                         rescale=1./255)
+    image_datagen = ImageDataGenerator(**data_gen_args)
+    mask_datagen = ImageDataGenerator(**data_gen_args)
+    # Provide the same seed and keyword arguments to the fit and flow methods
+    seed = 1
+    image_generator = image_datagen.flow_from_directory(
+        '/Users/debstutidas/PycharmProjects/opticDiskCup/data/Drishti-GS/train/image',
+        class_mode=None,
+        classes=None,
+        seed=seed,
+        batch_size=16)
+    mask_generator = mask_datagen.flow_from_directory(
+        '/Users/debstutidas/PycharmProjects/opticDiskCup/data/Drishti-GS/train/mask',
+        class_mode=None,
+        seed=seed,
+        batch_size=16)
+    # combine generators into one which yields image and masks
+    train_generator = zip(image_generator, mask_generator)
+    for (img, mask) in train_generator:
+        yield (img, mask)
 
-def tf_dataset(images, masks, batch=2):
-    dataset = tf.data.Dataset.from_tensor_slices((images, masks))
-    dataset = dataset.shuffle(buffer_size=1000)
-    dataset = dataset.map(preprocess)
-    dataset = dataset.batch(batch)
-    dataset = dataset.prefetch(2)
-    return dataset

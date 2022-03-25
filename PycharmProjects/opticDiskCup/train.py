@@ -1,6 +1,6 @@
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.losses import CategoricalCrossentropy, BinaryCrossentropy
 
-from data_preprocessing import load_data, tf_dataset
+from data_preprocessing import load_data, train_generator
 from unet import build_unet
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TensorBoard, EarlyStopping
@@ -18,13 +18,13 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 if __name__ == '__main__':
     root_path = '/Users/debstutidas/PycharmProjects/opticDiskCup/data/Drishti-GS/train'
     images, masks = load_data(root_path)
-    dataset = tf_dataset(images, masks, 2)
+    train_generator = train_generator(images, masks)
 
     learning_rate = 0.1
     input_shape = (256, 256, 3)
     model = DeepLabV3Plus(input_shape)
 
-    model.compile(loss="binary_crossentropy", optimizer=Adam(learning_rate))
+
 
     csv_path = 'output/out.csv'
 
@@ -33,22 +33,19 @@ if __name__ == '__main__':
 
     train_steps_per_batch = len(images) // batch_size
 
-    callbacks = [
-        # ModelCheckpoint(model_path, save_best_only=True),
-        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=1e-7),
-        EarlyStopping(monitor='val_loss', patience=5),
-        # CSVLogger(csv_path),
-        TensorBoard()
-    ]
 
-    loss = SparseCategoricalCrossentropy(from_logits=True)
+
+    loss = CategoricalCrossentropy()
     model.compile(
         optimizer=Adam(learning_rate=0.001),
         loss=loss,
         metrics=["accuracy"],
     )
 
-    history = model.fit(dataset, epochs=25)
+    history = model.fit_generator(
+        train_generator,
+        steps_per_epoch=20,
+        epochs=5)
 
 
 
